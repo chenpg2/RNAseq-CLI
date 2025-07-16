@@ -128,6 +128,9 @@ The pipeline will create the specified output directory (`-o`) with the followin
 
 This project also includes a script to analyze the non-host reads saved in the `unmapped_reads` directory. This can be used to estimate the abundance of specific microbial sequences.
 
+### Requirement
+bwa=0.7.17
+
 ### Usage
 
 1.  **Make the script executable:**
@@ -142,7 +145,9 @@ This project also includes a script to analyze the non-host reads saved in the `
         -f /path/to/your/bacterial_sequence.fasta
     ```
 
-This will generate a `bacterial_abundance_report.txt` file summarizing the results.
+ This will produce a more accurate and reliable report file named bacterial_abundance_report_bwa.txt. This alignment-based method is
+  the standard and correct way to approach this kind of problem in bioinformatics.
+
 
 
 ## License
