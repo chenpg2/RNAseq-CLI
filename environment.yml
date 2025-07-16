@@ -1,0 +1,11 @@
+name: rnaseq_analysis_env
+channels:
+  - defaults
+  - bioconda
+  - conda-forge
+dependencies:
+  - trim-galore=0.6.7
+  - fastqc=0.11.9
+  - hisat2=2.2.1
+  - samtools=1.15.1
+  - subread=2.0.3
