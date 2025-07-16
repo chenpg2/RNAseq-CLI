@@ -182,8 +182,19 @@ if [[ ! ",${SKIP_STEPS}," =~ ",4," ]]; then
     # 获取所有排序后的 BAM 文件列表
     BAM_FILES=$(ls ${ALIGN_DIR}/*.sorted.bam)
 
-    # featureCounts 可以利用所有核心
-    featureCounts -T $(sysctl -n hw.ncpu) -p -t exon -g gene_id \
+    # Determine the number of available cores in a portable way
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        N_CORES=$(nproc)
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        N_CORES=$(sysctl -n hw.ncpu)
+    else
+        # Default to a safe number if OS is not recognized
+        echo "Warning: Could not determine OS type. Defaulting to 4 threads for featureCounts."
+        N_CORES=4
+    fi
+
+    # featureCounts can utilize all available cores
+    featureCounts -T ${N_CORES} -p -t exon -g gene_id \
                   -a ${GTF_FILE} \
                   -o ${COUNT_DIR}/gene_counts.txt \
                   ${BAM_FILES}
