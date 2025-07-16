@@ -65,7 +65,7 @@ The main script `run_rnaseq_pipeline_cli.sh` is controlled via command-line argu
 ### Command-Line Options
 
 ```
-Usage: ./run_rnaseq_pipeline_cli.sh -g <genome_index_prefix> -a <annotation_gtf> -i <input_dir> -o <output_dir> [-j <max_jobs>] [-n <threads_per_job>]
+Usage: ./run_rnaseq_pipeline_cli.sh -g <genome_index_prefix> -a <annotation_gtf> -i <input_dir> -o <output_dir> [-j <max_jobs>] [-n <threads_per_job>] [-s <steps_to_skip>]
 
 Options:
   -g    [必须] HISAT2 基因组索引的前缀路径 (e.g., /path/to/ref/mm10)
@@ -74,6 +74,7 @@ Options:
   -o    [必须] 用于存放所有结果的输出目录
   -j    [可选] 并行处理的样本作业数 (默认: 8)
   -n    [可选] 每个作业内部使用的线程数 (默认: 4)
+  -s    [可选] 跳过指定的步骤，用逗号分隔 (e.g., '1,4'). Steps: 1=TrimGalore, 2=HISAT2, 3=Samtools, 4=featureCounts
   -h    显示此帮助信息
 ```
 
@@ -84,7 +85,7 @@ Options:
     chmod +x run_rnaseq_pipeline_cli.sh
     ```
 
-2.  **Run the pipeline:**
+2.  **Run the full pipeline:**
     ```bash
     ./run_rnaseq_pipeline_cli.sh \
         -g /path/to/your/project/reference/genome/mm10 \
@@ -95,17 +96,55 @@ Options:
         -n 8
     ```
 
+### Skipping Steps
+
+The `-s` parameter allows you to skip specific parts of the pipeline, which is useful for re-running analyses. The steps are numbered:
+1.  Trim Galore (Quality Trimming)
+2.  HISAT2 (Alignment)
+3.  Samtools (BAM processing)
+4.  featureCounts (Gene Counting)
+
+-   **To skip a single step (e.g., re-run counting without re-aligning):**
+    ```bash
+    # This assumes steps 1, 2, and 3 have already been completed successfully
+    ./run_rnaseq_pipeline_cli.sh ... -s "1,2,3"
+    ```
+
+-   **To skip multiple steps:**
+    ```bash
+    ./run_rnaseq_pipeline_cli.sh ... -s "1,4"
+    ```
+
 ## Output
 
 The pipeline will create the specified output directory (`-o`) with the following subdirectories:
 
 -   `cleandata/`: Contains trimmed FASTQ files and FastQC reports.
 -   `alignment/`: Contains sorted and indexed BAM files for each sample.
+-   `unmapped_reads/`: Contains gzipped FASTQ files of read pairs that did not align to the host genome.
 -   `counts/`: Contains the final gene count matrix named `gene_counts.txt`. This file can be directly used for downstream differential gene expression analysis.
+
+## Secondary Analysis: Quantifying Bacterial Abundance
+
+This project also includes a script to analyze the non-host reads saved in the `unmapped_reads` directory. This can be used to estimate the abundance of specific microbial sequences.
+
+### Usage
+
+1.  **Make the script executable:**
+    ```bash
+    chmod +x quantify_bacterial_abundance.sh
+    ```
+
+2.  **Run the script:**
+    ```bash
+    ./quantify_bacterial_abundance.sh \
+        -i /path/to/your/project/output_results/unmapped_reads \
+        -f /path/to/your/bacterial_sequence.fasta
+    ```
+
+This will generate a `bacterial_abundance_report.txt` file summarizing the results.
 
 
 ## License
 
 This project is licensed under the MIT License.
-
-```
